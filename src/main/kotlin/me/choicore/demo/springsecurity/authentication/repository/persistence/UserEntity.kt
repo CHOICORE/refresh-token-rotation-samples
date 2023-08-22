@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import java.time.LocalDateTime
 
 @Entity
 @Table(name = "user")
@@ -20,11 +21,15 @@ class UserEntity(
     val mobile: String,
     @Column(length = 1)
     val gender: Gender,
-) {
+
+    ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     val id: Long = 0
+    var lastLoggedInAt: LocalDateTime? = null
+    var loginAttempts: Int = 0
+
 
     @Embeddable
     class Username(
