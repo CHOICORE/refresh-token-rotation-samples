@@ -1,0 +1,8 @@
+###
+POST http://localhost:8080/v1/account/sign-in
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "admin"
+}

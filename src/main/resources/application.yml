@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+spring:
+  profiles:
+    active: local
+
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+
+  datasource:
+    url: jdbc:h2:mem:local
+    username: local
+    password:
+    driverClassName: org.h2.Driver
+
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+        auto_quote_keyword: true
+
+  h2:
+    console:
+      enabled: true
+
+  docker:
+    compose:
+      file: docker-compose-redis.yml
