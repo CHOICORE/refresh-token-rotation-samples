@@ -8,9 +8,11 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import org.hibernate.annotations.DynamicUpdate
 import java.time.LocalDateTime
 
 @Entity
+@DynamicUpdate
 @Table(name = "user")
 class UserEntity(
     val nickname: String,
@@ -29,7 +31,6 @@ class UserEntity(
     val id: Long = 0
     var lastLoggedInAt: LocalDateTime? = null
     var loginAttempts: Int = 0
-
 
     @Embeddable
     class Username(
