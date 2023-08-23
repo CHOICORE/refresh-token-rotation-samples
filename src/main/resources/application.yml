@@ -4,9 +4,6 @@ rsa:
 
 authentication:
   login-attempts-limit: 5
-  error-message:
-    invalid_credentials: "아이디 또는 비밀번호가 잘못되었습니다."
-    exceeded_login_attempts: "로그인 시도 횟수를 초과하였습니다."
 
 server:
   port: 8080
