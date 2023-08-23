@@ -18,16 +18,16 @@ class AuthenticationApi(
 
     @PostMapping("/sign-in")
     fun signIn(@RequestBody @Valid signInRequestDto: SignInRequestDto): ResponseEntity<Any> {
-        return ResponseEntity.ok(authenticationProcessor.authenticate(signInRequestDto.identifier, signInRequestDto.password))
+        return ResponseEntity.ok(
+            mapOf(
+                "code" to 0, "message" to "SUCCEED", "data" to authenticationProcessor.authenticate(signInRequestDto.identifier, signInRequestDto.password)
+            )
+        )
     }
 
-    @PostMapping("/sign-up")
-    fun signUp() {
-
-    }
 
     @PostMapping("/sign-out")
-    fun signOut() {
-
+    fun signOut(): ResponseEntity<Any> {
+        return ResponseEntity.ok(mapOf("code" to 0, "message" to "로그아웃"))
     }
 }
