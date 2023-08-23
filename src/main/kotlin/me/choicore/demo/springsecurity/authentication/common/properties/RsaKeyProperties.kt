@@ -1,4 +1,4 @@
-package me.choicore.demo.springsecurity.authentication.common.property
+package me.choicore.demo.springsecurity.authentication.common.properties
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import java.security.interfaces.RSAPrivateKey

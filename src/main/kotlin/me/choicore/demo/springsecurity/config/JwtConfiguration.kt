@@ -4,7 +4,7 @@ import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.RSAKey.Builder
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet
-import me.choicore.demo.springsecurity.authentication.common.property.RsaKeyProperties
+import me.choicore.demo.springsecurity.authentication.common.properties.RsaKeyProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.oauth2.jwt.JwtDecoder
