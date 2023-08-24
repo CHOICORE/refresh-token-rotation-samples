@@ -37,6 +37,9 @@ class SecurityConfiguration(
         httpSecurity
             .csrf { it.disable() }
             .headers { it.frameOptions { frameOption -> frameOption.sameOrigin() } }
+            .formLogin { it.disable() }
+            .httpBasic { it.disable() }
+            .logout { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
                 it.requestMatchers(*PERMIT_WHITE_LIST).permitAll()
