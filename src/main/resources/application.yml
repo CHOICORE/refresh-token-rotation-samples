@@ -2,6 +2,12 @@ rsa:
   public-key: classpath:/keys/public-key.pem
   private-key: classpath:/keys/private-key.pem
 
+jwt:
+  expiration:
+    access-token: 1
+    refresh-token: 86400
+  issuer: choicore-authentication-server
+
 authentication:
   login-attempts-limit: 5
 
@@ -45,3 +51,9 @@ spring:
   docker:
     compose:
       file: docker-compose-redis.yml
+
+#logging:
+#  charset:
+#    console: UTF-8
+#  level:
+#    root: debug
