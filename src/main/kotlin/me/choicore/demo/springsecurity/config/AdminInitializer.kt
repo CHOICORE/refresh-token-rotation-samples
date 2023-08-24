@@ -13,8 +13,7 @@ class AdminInitializer(
     private val userJpaRepository: UserJpaRepository,
     private val passwordEncoder: PasswordEncoder,
 ) : ApplicationRunner {
-    override fun run(args: ApplicationArguments?) {
-        println(passwordEncoder)
+    override fun run(args: ApplicationArguments) {
         val userEntity = UserEntity(
             email = "admin",
             password = passwordEncoder.encode("admin"),
