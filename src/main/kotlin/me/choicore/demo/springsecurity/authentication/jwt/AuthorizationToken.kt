@@ -1,4 +1,4 @@
-package me.choicore.demo.springsecurity.authentication
+package me.choicore.demo.springsecurity.authentication.jwt
 
 sealed class AuthorizationToken {
     data class Bearer(val token: String) : AuthorizationToken() {
