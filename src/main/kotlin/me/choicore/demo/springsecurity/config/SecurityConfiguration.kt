@@ -5,6 +5,7 @@ import me.choicore.demo.springsecurity.authentication.service.DefaultAuthenticat
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -17,7 +18,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 @Configuration
 @EnableWebSecurity
 class SecurityConfiguration(
-
     private val objectMapper: ObjectMapper,
 ) {
     private companion object {
@@ -39,12 +39,16 @@ class SecurityConfiguration(
             .headers { it.frameOptions { frameOption -> frameOption.sameOrigin() } }
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
-            .logout { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
                 it.requestMatchers(*PERMIT_WHITE_LIST).permitAll()
                 it.anyRequest().authenticated()
             }
+            .oauth2ResourceServer {
+                it.jwt(Customizer.withDefaults())
+                it.authenticationEntryPoint(DefaultAuthenticationEntryPoint(objectMapper))
+            }
+            //.addFilterBefore(jwtAuthenticationFilter, BearerTokenAuthenticationFilter::class.java)    // 추가
             .exceptionHandling {
                 it.authenticationEntryPoint(DefaultAuthenticationEntryPoint(objectMapper))
             }

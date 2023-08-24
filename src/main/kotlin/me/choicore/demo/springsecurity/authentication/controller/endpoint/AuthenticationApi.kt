@@ -4,6 +4,7 @@ import jakarta.validation.Valid
 import me.choicore.demo.springsecurity.authentication.controller.dto.request.SignInRequestDto
 import me.choicore.demo.springsecurity.authentication.service.AuthenticationProcessor
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -29,5 +30,17 @@ class AuthenticationApi(
     @PostMapping("/sign-out")
     fun signOut(): ResponseEntity<Any> {
         return ResponseEntity.ok(mapOf("code" to 0, "message" to "로그아웃"))
+    }
+}
+
+
+@RestController
+class HomeApi {
+
+    @GetMapping
+    fun home(): ResponseEntity<Any> {
+        println("??")
+        return ResponseEntity.ok(mapOf("code" to 0, "message" to "Hello, World!"))
+
     }
 }
