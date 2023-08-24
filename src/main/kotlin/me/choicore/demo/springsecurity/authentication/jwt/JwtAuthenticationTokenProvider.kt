@@ -4,6 +4,7 @@ import me.choicore.demo.springsecurity.authentication.common.properties.JwtPrope
 import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.AuthenticationCredentials
 import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.AuthenticationTokenStore
 import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.Credentials
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtClaimsSet
 import org.springframework.security.oauth2.jwt.JwtDecoder
@@ -19,6 +20,7 @@ class JwtAuthenticationTokenProvider(
     private val jwtProperties: JwtProperties,
     private val jwtEncoder: JwtEncoder,
     private val jwtDecoder: JwtDecoder,
+    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
     private lateinit var jwt: Jwt
     fun validateToken(jwtToken: String): Boolean {
@@ -40,19 +42,34 @@ class JwtAuthenticationTokenProvider(
         return Pair(accessToken, refreshToken)
     }
 
-    fun generateAuthenticationToken(identifier: Long): AuthenticationTokenStore {
-        val key = UUID.randomUUID().toString()
-        val issueTokens: Pair<String, String> = this.issueTokens(id = key)
-        val authenticationCredentials = AuthenticationCredentials(
-            identifier = identifier,
-            credentials = Credentials(
-                accessToken = issueTokens.first,
-                refreshToken = issueTokens.second
+    fun generateAuthenticationToken(identifier: Long): AuthenticationToken {
+        with(getAuthenticationTokenStore(identifier = identifier)) {
+            applicationEventPublisher.publishEvent(this)
+            return AuthenticationToken.bearerToken(
+                accessToken = value.credentials.accessToken,
+                expiresIn = jwtProperties.expiration.accessToken,
+                refreshToken = value.credentials.refreshToken,
             )
-        )
-        return AuthenticationTokenStore(key = key, value = authenticationCredentials)
+        }
     }
 
+    fun getAuthenticationTokenStore(identifier: Long): AuthenticationTokenStore {
+        val uuid = UUID.randomUUID().toString()
+        val issueTokens: Pair<String, String> = this.issueTokens(id = uuid)
+
+        with(issueTokens) {
+            return AuthenticationTokenStore(
+                key = uuid,
+                value = AuthenticationCredentials(
+                    identifier = identifier,
+                    credentials = Credentials(
+                        accessToken = this.first,
+                        refreshToken = this.second
+                    )
+                )
+            )
+        }
+    }
 
     private fun issueRefreshToken(id: String): String {
         return this.generateToken(id = id, expiresAt = jwtProperties.expiration.refreshToken)

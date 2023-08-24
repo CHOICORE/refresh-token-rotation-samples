@@ -17,9 +17,9 @@ class TokenRedisRepository(
     }
 
     fun findById(id: String): String {
+        println("findById: $id")
         this.redisTemplate.opsForValue().get(id)?.let {
             return it
         } ?: throw IllegalArgumentException("Not found token for id: $id")
     }
-
 }

@@ -31,14 +31,10 @@ class JwtAuthenticationFilter(
     }
 
     private fun parseAuthorizationHeader(header: String): String {
-        header.startsWith(GrantType.BEARER.value).let {
-            return header.substring(GrantType.BEARER.value.length)
+        val tokenType: String = GrantType.BEARER.value
+        header.startsWith(tokenType).let {
+            return header.substring(tokenType.length + 1)
         }
     }
-
-    enum class GrantType(val value: String) {
-        BEARER("Bearer ");
-    }
-
 }
 

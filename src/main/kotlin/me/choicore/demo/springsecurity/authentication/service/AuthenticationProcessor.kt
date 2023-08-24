@@ -5,14 +5,13 @@ import me.choicore.demo.springsecurity.authentication.exception.ExceededLoginAtt
 import me.choicore.demo.springsecurity.authentication.exception.InvalidPasswordException
 import me.choicore.demo.springsecurity.authentication.exception.UnauthorizedException
 import me.choicore.demo.springsecurity.authentication.exception.UsernameNotFoundException
+import me.choicore.demo.springsecurity.authentication.jwt.AuthenticationToken
 import me.choicore.demo.springsecurity.authentication.jwt.JwtAuthenticationTokenProvider
-import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.Credentials
 import me.choicore.demo.springsecurity.authentication.repository.persistence.UserEntity
 import me.choicore.demo.springsecurity.authentication.repository.persistence.UserJpaRepository
 import me.choicore.demo.springsecurity.authentication.service.domain.loginAttemptsExceeded
 import me.choicore.demo.springsecurity.authentication.service.domain.loginFailure
 import me.choicore.demo.springsecurity.authentication.service.domain.updateStatus
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -24,10 +23,9 @@ class AuthenticationProcessor(
     private val userJpaRepository: UserJpaRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtAuthenticationTokenProvider: JwtAuthenticationTokenProvider,
-    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
     @Transactional(noRollbackFor = [UnauthorizedException::class])
-    fun authenticate(identifier: String, password: String): Credentials {
+    fun authenticate(identifier: String, password: String): AuthenticationToken {
         with(receiver = userJpaRepository.findByIdentifier(identifier = identifier) ?: throw UsernameNotFoundException()) {
             // 로그인 실패 횟수 체크
             if (this.loginAttemptsExceeded(authenticationProperties.loginAttemptsLimit)) {
@@ -51,10 +49,9 @@ class AuthenticationProcessor(
         return passwordEncoder.matches(rawPassword, encodedPassword)
     }
 
-    private fun issueTokenForValidatedUser(userEntity: UserEntity): Credentials {
+    private fun issueTokenForValidatedUser(userEntity: UserEntity): AuthenticationToken {
         with(jwtAuthenticationTokenProvider.generateAuthenticationToken(identifier = userEntity.id)) {
-            applicationEventPublisher.publishEvent(this)
-            return this.value.credentials
+            return this
         }
     }
 }

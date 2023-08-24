@@ -18,29 +18,30 @@ class AuthenticationApi(
 ) {
 
     @PostMapping("/sign-in")
-    fun signIn(@RequestBody @Valid signInRequestDto: SignInRequestDto): ResponseEntity<Any> {
+    fun signIn(@RequestBody @Valid signInRequestDto: SignInRequestDto): ResponseEntity<*> {
         return ResponseEntity.ok(
             mapOf(
-                "code" to 0, "message" to "SUCCEED", "data" to authenticationProcessor.authenticate(signInRequestDto.identifier, signInRequestDto.password)
+                "code" to 0,
+                "message" to "SUCCEED",
+                "data" to authenticationProcessor.authenticate(
+                    signInRequestDto.identifier,
+                    signInRequestDto.password
+                )
             )
         )
     }
 
-
     @PostMapping("/sign-out")
-    fun signOut(): ResponseEntity<Any> {
+    fun signOut(): ResponseEntity<*> {
         return ResponseEntity.ok(mapOf("code" to 0, "message" to "로그아웃"))
     }
 }
-
 
 @RestController
 class HomeApi {
 
     @GetMapping
-    fun home(): ResponseEntity<Any> {
-        println("??")
+    fun home(): ResponseEntity<*> {
         return ResponseEntity.ok(mapOf("code" to 0, "message" to "Hello, World!"))
-
     }
 }
