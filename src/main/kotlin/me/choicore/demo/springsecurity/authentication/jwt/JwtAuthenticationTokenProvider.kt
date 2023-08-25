@@ -2,7 +2,7 @@ package me.choicore.demo.springsecurity.authentication.jwt
 
 import me.choicore.demo.springsecurity.authentication.common.properties.JwtProperties
 import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.AuthenticationCredentials
-import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.AuthenticationTokenStore
+import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.AuthenticationTokenCache
 import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.Credentials
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.security.oauth2.jwt.Jwt
@@ -15,7 +15,6 @@ import java.time.Instant
 import java.util.UUID
 
 @Component
-
 class JwtAuthenticationTokenProvider(
     private val jwtProperties: JwtProperties,
     private val jwtEncoder: JwtEncoder,
@@ -43,7 +42,7 @@ class JwtAuthenticationTokenProvider(
     }
 
     fun generateAuthenticationToken(identifier: Long): AuthenticationToken {
-        with(getAuthenticationTokenStore(identifier = identifier)) {
+        with(getAuthenticationTokenCache(identifier = identifier)) {
             applicationEventPublisher.publishEvent(this)
             return AuthenticationToken.bearerToken(
                 accessToken = value.credentials.accessToken,
@@ -53,12 +52,12 @@ class JwtAuthenticationTokenProvider(
         }
     }
 
-    fun getAuthenticationTokenStore(identifier: Long): AuthenticationTokenStore {
+    fun getAuthenticationTokenCache(identifier: Long): AuthenticationTokenCache {
         val uuid = UUID.randomUUID().toString()
         val issueTokens: Pair<String, String> = this.issueTokens(id = uuid)
 
         with(issueTokens) {
-            return AuthenticationTokenStore(
+            return AuthenticationTokenCache(
                 key = uuid,
                 value = AuthenticationCredentials(
                     identifier = identifier,
@@ -66,7 +65,8 @@ class JwtAuthenticationTokenProvider(
                         accessToken = this.first,
                         refreshToken = this.second
                     )
-                )
+                ),
+                ttl = jwtProperties.expiration.refreshToken
             )
         }
     }
@@ -79,12 +79,15 @@ class JwtAuthenticationTokenProvider(
         return this.generateToken(id = id, expiresAt = jwtProperties.expiration.accessToken)
     }
 
-    private fun generateToken(id: String, expiresAt: Long): String {
-        val now: Instant = Instant.now()
+    fun generateToken(id: String, expiresAt: Long): String {
+        return generateToken(id = id, expiresAt = expiresAt, issuedAt = Instant.now())
+    }
+
+    fun generateToken(id: String, expiresAt: Long, issuedAt: Instant): String {
         val jwtClaimsSet = JwtClaimsSet.builder()
             .id(id)
-            .expiresAt(now.plusSeconds(expiresAt))
-            .issuedAt(now)
+            .expiresAt(issuedAt.plusSeconds(expiresAt))
+            .issuedAt(issuedAt)
             .issuer(jwtProperties.issuer)
             .build()
         return this.jwtEncoder.encode(JwtEncoderParameters.from(jwtClaimsSet)).tokenValue
