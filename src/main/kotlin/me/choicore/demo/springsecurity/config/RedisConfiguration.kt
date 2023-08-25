@@ -7,6 +7,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.redis.serializer.StringRedisSerializer
 
 
 @Configuration
@@ -19,8 +20,11 @@ class RedisConfiguration {
     ): LettuceConnectionFactory = LettuceConnectionFactory(RedisStandaloneConfiguration(hostName, port))
 
     @Bean
-    fun redisTemplate(redisConnectionFactory: RedisConnectionFactory): RedisTemplate<String, String> {
-        return RedisTemplate<String, String>().apply { this.connectionFactory = redisConnectionFactory }
+    fun redisTemplate(redisConnectionFactory: RedisConnectionFactory): RedisTemplate<*, *> {
+        return RedisTemplate<Any, Any>().apply {
+            this.connectionFactory = redisConnectionFactory
+            this.keySerializer = StringRedisSerializer.UTF_8
+            this.valueSerializer = StringRedisSerializer.UTF_8
+        }
     }
-
 }

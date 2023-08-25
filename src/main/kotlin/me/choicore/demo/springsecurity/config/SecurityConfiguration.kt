@@ -1,6 +1,6 @@
 package me.choicore.demo.springsecurity.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import me.choicore.demo.springsecurity.authentication.service.DefaultAuthenticationEntryPoint
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest
 import org.springframework.context.annotation.Bean
@@ -17,9 +17,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfiguration(
-    private val objectMapper: ObjectMapper,
-) {
+class SecurityConfiguration {
     private companion object {
         private const val API_END_POINT_PREFIX = "/v1"
         private val PERMIT_WHITE_LIST = arrayOf(
@@ -46,14 +44,16 @@ class SecurityConfiguration(
             }
             .oauth2ResourceServer {
                 it.jwt(Customizer.withDefaults())
-                it.authenticationEntryPoint(DefaultAuthenticationEntryPoint(objectMapper))
+                it.authenticationEntryPoint(defaultAuthenticationEntryPoint())
             }
             //.addFilterBefore(jwtAuthenticationFilter, BearerTokenAuthenticationFilter::class.java)    // 추가
             .exceptionHandling {
-                it.authenticationEntryPoint(DefaultAuthenticationEntryPoint(objectMapper))
+                it.authenticationEntryPoint(defaultAuthenticationEntryPoint())
             }
         return httpSecurity.build()
     }
+
+    @Bean
+    fun defaultAuthenticationEntryPoint() = DefaultAuthenticationEntryPoint(jacksonObjectMapper())
+
 }
-
-

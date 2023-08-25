@@ -1,7 +1,7 @@
 package me.choicore.demo.springsecurity.config
 
-import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.JWKSet
+import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.RSAKey.Builder
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet
 import me.choicore.demo.springsecurity.authentication.common.properties.RsaKeyProperties
@@ -17,16 +17,18 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder
 class JwtConfiguration(
     private val rsaKeyProperties: RsaKeyProperties,
 ) {
+
     @Bean
-    fun jwtDecoder(): JwtDecoder = NimbusJwtDecoder.withPublicKey(rsaKeyProperties.publicKey).build()
+    fun jwtDecoder(): JwtDecoder {
+        return NimbusJwtDecoder.withPublicKey(rsaKeyProperties.publicKey).build()
+    }
 
     @Bean
     fun jwtEncoder(): JwtEncoder {
-        val jwk: JWK = with(rsaKeyProperties) {
-            Builder(publicKey)
-                .privateKey(privateKey)
-                .build()
-        }
-        return NimbusJwtEncoder(ImmutableJWKSet(JWKSet(jwk)))
+        val rsaKey: RSAKey = Builder(rsaKeyProperties.publicKey)
+            .privateKey(rsaKeyProperties.privateKey)
+            .build()
+        val jwkSet = JWKSet(rsaKey)
+        return NimbusJwtEncoder(ImmutableJWKSet(jwkSet))
     }
 }

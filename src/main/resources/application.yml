@@ -4,7 +4,7 @@ rsa:
 
 jwt:
   expiration:
-    access-token: 1
+    access-token: 600
     refresh-token: 86400
   issuer: choicore-authentication-server
 
