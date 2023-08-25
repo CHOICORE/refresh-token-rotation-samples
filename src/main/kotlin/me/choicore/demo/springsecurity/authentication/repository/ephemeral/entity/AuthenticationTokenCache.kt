@@ -1,8 +1,9 @@
 package me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity
 
-data class AuthenticationTokenStore(
+data class AuthenticationTokenCache(
     val key: String,
     val value: AuthenticationCredentials,
+    val ttl: Long,
 )
 
 data class AuthenticationCredentials(
