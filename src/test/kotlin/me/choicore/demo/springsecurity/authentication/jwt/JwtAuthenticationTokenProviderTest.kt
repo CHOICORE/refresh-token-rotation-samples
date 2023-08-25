@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.oauth2.jwt.BadJwtException
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import java.time.Instant
 
 
 @SpringBootTest
@@ -31,6 +32,15 @@ class JwtAuthenticationTokenProviderTest(
         val validateToken = jwtAuthenticationTokenProvider.validateToken(invalidToken)
 
         Assertions.assertThat(validateToken).isFalse()
+    }
+
+    @Test
+    fun `create token `() {
+        val jwt = jwtAuthenticationTokenProvider.generateToken("choicore", Instant.EPOCH.epochSecond, Instant.EPOCH)
+
+        Assertions.assertThatNoException().isThrownBy {
+            jwtDecoder.decode(jwt)
+        }
     }
 
 
