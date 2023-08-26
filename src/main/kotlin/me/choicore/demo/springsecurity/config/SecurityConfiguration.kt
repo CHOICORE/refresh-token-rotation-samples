@@ -27,6 +27,11 @@ class SecurityConfiguration {
         )
     }
 
+//    @Bean
+//    fun authenticationManager(authenticationConfiguration: AuthenticationConfiguration): AuthenticationManager {
+//        return authenticationConfiguration.authenticationManager
+//    }
+
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
@@ -46,7 +51,7 @@ class SecurityConfiguration {
                 it.jwt(Customizer.withDefaults())
                 it.authenticationEntryPoint(defaultAuthenticationEntryPoint())
             }
-            //.addFilterBefore(jwtAuthenticationFilter, BearerTokenAuthenticationFilter::class.java)    // 추가
+//            .addFilterBefore(jwtAuthenticationFilter, BearerTokenAuthenticationFilter::class.java)    // 추가
             .exceptionHandling {
                 it.authenticationEntryPoint(defaultAuthenticationEntryPoint())
             }

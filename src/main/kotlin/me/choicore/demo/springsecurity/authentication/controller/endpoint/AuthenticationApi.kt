@@ -23,9 +23,9 @@ class AuthenticationApi(
             mapOf(
                 "code" to 0,
                 "message" to "SUCCEED",
-                "data" to authenticationProcessor.authenticate(
-                    signInRequestDto.identifier,
-                    signInRequestDto.password
+                "data" to authenticationProcessor.getAuthenticationToken(
+                    identifier = signInRequestDto.identifier,
+                    password = signInRequestDto.password
                 )
             )
         )

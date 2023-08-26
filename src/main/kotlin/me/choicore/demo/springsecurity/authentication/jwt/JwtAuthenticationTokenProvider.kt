@@ -4,7 +4,6 @@ import me.choicore.demo.springsecurity.authentication.common.properties.JwtPrope
 import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.AuthenticationCredentials
 import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.AuthenticationTokenCache
 import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.Credentials
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtClaimsSet
 import org.springframework.security.oauth2.jwt.JwtDecoder
@@ -19,7 +18,6 @@ class JwtAuthenticationTokenProvider(
     private val jwtProperties: JwtProperties,
     private val jwtEncoder: JwtEncoder,
     private val jwtDecoder: JwtDecoder,
-    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
     private lateinit var jwt: Jwt
     fun validateToken(jwtToken: String): Boolean {
@@ -43,16 +41,15 @@ class JwtAuthenticationTokenProvider(
 
     fun generateAuthenticationToken(identifier: Long): AuthenticationToken {
         with(getAuthenticationTokenCache(identifier = identifier)) {
-            applicationEventPublisher.publishEvent(this)
             return AuthenticationToken.bearerToken(
                 accessToken = value.credentials.accessToken,
-                expiresIn = jwtProperties.expiration.accessToken,
+                expiresIn = jwtProperties.accessExpiredAt,
                 refreshToken = value.credentials.refreshToken,
             )
         }
     }
 
-    fun getAuthenticationTokenCache(identifier: Long): AuthenticationTokenCache {
+    private fun getAuthenticationTokenCache(identifier: Long): AuthenticationTokenCache {
         val uuid = UUID.randomUUID().toString()
         val issueTokens: Pair<String, String> = this.issueTokens(id = uuid)
 
@@ -66,17 +63,17 @@ class JwtAuthenticationTokenProvider(
                         refreshToken = this.second
                     )
                 ),
-                ttl = jwtProperties.expiration.refreshToken
+                ttl = jwtProperties.refreshExpiredAt
             )
         }
     }
 
     private fun issueRefreshToken(id: String): String {
-        return this.generateToken(id = id, expiresAt = jwtProperties.expiration.refreshToken)
+        return this.generateToken(id = id, expiresAt = jwtProperties.refreshExpiredAt)
     }
 
     private fun issueAccessToken(id: String): String {
-        return this.generateToken(id = id, expiresAt = jwtProperties.expiration.accessToken)
+        return this.generateToken(id = id, expiresAt = jwtProperties.accessExpiredAt)
     }
 
     fun generateToken(id: String, expiresAt: Long): String {
