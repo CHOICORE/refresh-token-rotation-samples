@@ -11,6 +11,6 @@ class GenderAttributeConverter : AttributeConverter<UserEntity.Gender, Int> {
     }
 
     override fun convertToEntityAttribute(dbData: Int?): UserEntity.Gender {
-        return UserEntity.Gender.of(dbData ?: 0);
+        return UserEntity.Gender.of(dbData ?: 0)
     }
 }
