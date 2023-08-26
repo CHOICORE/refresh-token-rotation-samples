@@ -18,9 +18,8 @@ class AuthenticationApiTest(
     @Autowired private val jwtAuthenticationTokenProvider: JwtAuthenticationTokenProvider,
 ) {
 
-
     @Test
-    fun t1() {
+    fun verifyJwtAuthenticationWithExpectedExpectedMessage() {
         // given
         val jwt = jwtAuthenticationTokenProvider.generateToken("choicore", 3600)
         // expect
@@ -43,9 +42,8 @@ class AuthenticationApiTest(
         }
     }
 
-
     @Test
-    fun `expired token then invalid token exception`() {
+    fun verifyExpiredTokenResultsInUnauthorized() {
         // given
         val jwt = jwtAuthenticationTokenProvider.generateToken("choicore", Instant.EPOCH.epochSecond + 1, Instant.EPOCH)
         // expect
