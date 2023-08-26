@@ -14,29 +14,30 @@ import java.util.UUID
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class TokenRedisRepositoryTest(
     private val tokenRedisRepository: TokenRedisRepository,
-
-    ) {
+) {
     @Test
-    fun `save token to redis`() {
+    fun tokenSaveAndRetrievalFromRedis() {
 
         // given
         val uuid = UUID.randomUUID().toString()
-        val stub = AuthenticationTokenCache(
+        val stubTokenCache = AuthenticationTokenCache(
             key = uuid,
             value = AuthenticationCredentials(
                 identifier = 1,
                 credentials = Credentials(
-                    accessToken = "eyJhbGciOiJSUzI1NiJ9",
-                    refreshToken = "eyJhbGciOiJSUzI1NiJ9"
+                    accessToken = "accessToken",
+                    refreshToken = "refreshToken",
                 )
             ),
             ttl = 30L,
         )
         // when
-        tokenRedisRepository.save(stub)
-        val authenticationCredentials = tokenRedisRepository.findById(uuid)
+        tokenRedisRepository.save(stubTokenCache)
+
+        val authenticationCredentials: AuthenticationCredentials = tokenRedisRepository.findById(uuid)
+
         // then
         assertThat(authenticationCredentials).isNotNull()
-        assertThat(stub.value).isEqualTo(authenticationCredentials)
+        assertThat(stubTokenCache.value).isEqualTo(authenticationCredentials)
     }
 }
