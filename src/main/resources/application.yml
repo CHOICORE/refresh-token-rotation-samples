@@ -3,9 +3,11 @@ rsa:
   private-key: classpath:/keys/private-key.pem
 
 jwt:
-  expiration:
-    access-token: 600
-    refresh-token: 86400
+  accessExpiredAt: 600
+  refreshExpiredAt: 86400
+  #  expiration:
+  #    access-token: 600
+  #    refresh-token: 86400
   issuer: choicore-authentication-server
 
 authentication:

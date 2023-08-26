@@ -30,7 +30,7 @@ class UserEntity(
     @Column(name = "user_id")
     val id: Long = 0
     var lastLoggedInAt: LocalDateTime? = null
-    var loginAttempts: Int = 0
+    var failedLoginAttempts: Int = 0
 
     @Embeddable
     class Username(
