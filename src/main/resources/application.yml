@@ -30,10 +30,9 @@ spring:
       port: 6379
 
   datasource:
-    url: jdbc:h2:mem:local
-    username: local
-    password:
-    driverClassName: org.h2.Driver
+    url: jdbc:postgresql://localhost:5432/test
+    username: choicore
+    password: choicore
 
   jpa:
     open-in-view: false
@@ -43,16 +42,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         auto_quote_keyword: true
 
   h2:
     console:
-      enabled: true
-
-  docker:
-    compose:
-      file: docker-compose-redis.yml
+      enabled: false
 
 #logging:
 #  charset:

@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  redis:
+    image: redis:alpine
+    container_name: redis-token-store
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --port 6379
+    labels:
+      - "name=redis"
+      - "mode=standalone"
+  db:
+    container_name: postgres
+    image: postgres:alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=test
+      - POSTGRES_USER=choicore
+      - POSTGRES_PASSWORD=choicore
+      - TZ=Asia/Seoul
+    ports:
+      - "5432:5432"
+
+volumes:
+  db:
+    driver: local
+  redis:
+    driver: local
