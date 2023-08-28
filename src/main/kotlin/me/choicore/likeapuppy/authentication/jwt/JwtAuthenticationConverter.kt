@@ -35,7 +35,7 @@ class JwtAuthenticationConverter(
     }
 
     fun setJwtGrantedAuthoritiesConverter(
-        jwtGrantedAuthoritiesConverter: Converter<Jwt, Collection<GrantedAuthority>>
+        jwtGrantedAuthoritiesConverter: Converter<Jwt, Collection<GrantedAuthority>>,
     ) {
         Assert.notNull(jwtGrantedAuthoritiesConverter, "jwtGrantedAuthoritiesConverter cannot be null")
         this.jwtGrantedAuthoritiesConverter = jwtGrantedAuthoritiesConverter
@@ -72,19 +72,12 @@ class JwtAuthenticationConverter(
             return
         }
 
-        if (jwt.compareTokenValue(credentials.refreshToken)) {
-            log.debug("Compare requested to cached refresh token matched")
-            return
-        }
-
         log.error("Compare requested token to cached authentication token not matched")
         tokenRedisRepository.deleteById(jwt.id)
         throw UnauthorizedException.InvalidToken
     }
 
-
     private fun Jwt.compareTokenValue(tokenValue: String): Boolean {
         return this.tokenValue == tokenValue
     }
 }
-
