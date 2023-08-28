@@ -1,19 +1,20 @@
 package me.choicore.demo.springsecurity.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import me.choicore.demo.springsecurity.authentication.service.DefaultAuthenticationEntryPoint
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest
+import me.choicore.demo.springsecurity.authentication.exception.AuthenticationEntryPoint
+import me.choicore.demo.springsecurity.authentication.jwt.JwtAuthenticationConverter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
-
 
 @Configuration
 @EnableWebSecurity
@@ -21,16 +22,14 @@ class SecurityConfiguration {
     private companion object {
         private const val API_END_POINT_PREFIX = "/v1"
         private val PERMIT_WHITE_LIST = arrayOf(
-            PathRequest.toH2Console(),
-            AntPathRequestMatcher("${API_END_POINT_PREFIX}/account/sign-in"),
-            AntPathRequestMatcher("${API_END_POINT_PREFIX}/account/sign-out"),
+            // PathRequest.toH2Console(),
+            AntPathRequestMatcher("${API_END_POINT_PREFIX}/accounts/sign-in"),
+            AntPathRequestMatcher("${API_END_POINT_PREFIX}/accounts/sign-out"),
         )
     }
 
-//    @Bean
-//    fun authenticationManager(authenticationConfiguration: AuthenticationConfiguration): AuthenticationManager {
-//        return authenticationConfiguration.authenticationManager
-//    }
+    @Bean
+    fun objectMapper(): ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
 
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
@@ -43,22 +42,22 @@ class SecurityConfiguration {
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-            .authorizeHttpRequests {
-                it.requestMatchers(*PERMIT_WHITE_LIST).permitAll()
-                it.anyRequest().authenticated()
+            .authorizeHttpRequests { authorizeHttpRequests ->
+                authorizeHttpRequests.requestMatchers(*PERMIT_WHITE_LIST).permitAll()
+                authorizeHttpRequests.anyRequest().authenticated()
             }
-            .oauth2ResourceServer {
-                it.jwt(Customizer.withDefaults())
-                it.authenticationEntryPoint(defaultAuthenticationEntryPoint())
+            .oauth2ResourceServer { oauth2ResourceServer ->
+                oauth2ResourceServer.jwt { configurer: OAuth2ResourceServerConfigurer<HttpSecurity>.JwtConfigurer
+                    ->
+                    jwtAuthenticationConverter.setPrincipalClaimName("jti")
+                    configurer.jwtAuthenticationConverter(jwtAuthenticationConverter)
+                }
+                oauth2ResourceServer.authenticationEntryPoint(AuthenticationEntryPoint(objectMapper()))
             }
-//            .addFilterBefore(jwtAuthenticationFilter, BearerTokenAuthenticationFilter::class.java)    // 추가
             .exceptionHandling {
-                it.authenticationEntryPoint(defaultAuthenticationEntryPoint())
+                it.authenticationEntryPoint(AuthenticationEntryPoint(objectMapper()))
             }
+
         return httpSecurity.build()
     }
-
-    @Bean
-    fun defaultAuthenticationEntryPoint() = DefaultAuthenticationEntryPoint(jacksonObjectMapper())
-
 }

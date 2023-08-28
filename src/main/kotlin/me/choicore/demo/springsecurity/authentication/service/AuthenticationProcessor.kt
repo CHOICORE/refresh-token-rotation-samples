@@ -2,30 +2,27 @@ package me.choicore.demo.springsecurity.authentication.service
 
 import me.choicore.demo.springsecurity.authentication.common.Slf4j
 import me.choicore.demo.springsecurity.authentication.common.properties.AuthenticationProperties
-import me.choicore.demo.springsecurity.authentication.exception.ExceededLoginAttemptsException
-import me.choicore.demo.springsecurity.authentication.exception.InvalidPasswordException
 import me.choicore.demo.springsecurity.authentication.exception.UnauthorizedException
-import me.choicore.demo.springsecurity.authentication.exception.UsernameNotFoundException
 import me.choicore.demo.springsecurity.authentication.jwt.AuthenticationToken
 import me.choicore.demo.springsecurity.authentication.jwt.JwtAuthenticationTokenProvider
-import me.choicore.demo.springsecurity.authentication.repository.persistence.UserEntity
 import me.choicore.demo.springsecurity.authentication.repository.persistence.UserJpaRepository
+import me.choicore.demo.springsecurity.authentication.repository.persistence.entity.UserEntity
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
-
-@Service
+@Repository
 class AuthenticationProcessor(
     private val authenticationProperties: AuthenticationProperties,
     private val userJpaRepository: UserJpaRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtAuthenticationTokenProvider: JwtAuthenticationTokenProvider,
 ) {
-
     private val log = Slf4j
 
     @Transactional(noRollbackFor = [UnauthorizedException::class])
@@ -56,31 +53,34 @@ class AuthenticationProcessor(
         userEntity.markAsLoggedIn()
     }
 
-
-    /**
-     * 패스워드가 일치하는지 확인하고, 일치하지 않으면 예외를 발생시킨다.
-     */
+    @Throws(UnauthorizedException::class)
     private fun UserEntity.validateAuthentication(enteredPassword: String) {
 
         if (failedLoginAttempts >= authenticationProperties.loginAttemptsLimit) {
             log.error("User with ID $id has exceeded the maximum number of login attempts.")
-            throw ExceededLoginAttemptsException()
+            throw UnauthorizedException.LoginAttemptsExceeded
         }
 
-        if (!passwordEncoder.matches(enteredPassword, this.password)) {
+        if (!passwordEncoder.matches(enteredPassword, password)) {
             failedLoginAttempts += 1
             log.error("Invalid password entered for user with ID $id.")
-            throw InvalidPasswordException()
+            throw UnauthorizedException.InvalidPassword
         }
-        // TODO - if user is in dormant status, throw exception
+        if (isDormant()) {
+            log.error("User with ID $id has not logged in for over a year and is now dormant.")
+            throw UnauthorizedException.DormantAccount
+        }
     }
 
-    /**
-     * 로그인 성공 시, 패스워드 오류 횟수를 초기화하고 최근 로그인 시간을 갱신한다.
-     */
+    private fun UserEntity.isDormant(): Boolean {
+        if (lastLoggedInAt == null) return false
+        val lastLoggedInAt: ZonedDateTime = ZonedDateTime.ofInstant(lastLoggedInAt, ZoneId.systemDefault())
+        return lastLoggedInAt.plusYears(1).isBefore(ZonedDateTime.now())
+    }
+
     private fun UserEntity.markAsLoggedIn() {
         failedLoginAttempts = 0
-        lastLoggedInAt = LocalDateTime.now()
+        lastLoggedInAt = Instant.now()
     }
 
     private fun issueTokenForValidatedUser(userEntity: UserEntity): AuthenticationToken {
