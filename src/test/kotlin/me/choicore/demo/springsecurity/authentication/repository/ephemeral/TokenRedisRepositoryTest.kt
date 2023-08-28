@@ -3,7 +3,9 @@ package me.choicore.demo.springsecurity.authentication.repository.ephemeral
 import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.AuthenticationCredentials
 import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.AuthenticationTokenCache
 import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.Credentials
+import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.Principal
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.TestConstructor
@@ -15,15 +17,19 @@ import java.util.UUID
 class TokenRedisRepositoryTest(
     private val tokenRedisRepository: TokenRedisRepository,
 ) {
+
     @Test
-    fun tokenSaveAndRetrievalFromRedis() {
+    @DisplayName("토큰 정보를 Redis에 저장한다.")
+    fun tokenSave() {
 
         // given
         val uuid = UUID.randomUUID().toString()
         val stubTokenCache = AuthenticationTokenCache(
             key = uuid,
             value = AuthenticationCredentials(
-                identifier = 1,
+                principal = Principal(
+                    identifier = 1L
+                ),
                 credentials = Credentials(
                     accessToken = "accessToken",
                     refreshToken = "refreshToken",
@@ -33,8 +39,7 @@ class TokenRedisRepositoryTest(
         )
         // when
         tokenRedisRepository.save(stubTokenCache)
-
-        val authenticationCredentials: AuthenticationCredentials = tokenRedisRepository.findById(uuid)
+        val authenticationCredentials: AuthenticationCredentials? = tokenRedisRepository.findById(uuid)
 
         // then
         assertThat(authenticationCredentials).isNotNull()

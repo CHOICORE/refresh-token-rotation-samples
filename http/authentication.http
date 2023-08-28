@@ -1,8 +1,25 @@
 ###
-POST http://localhost:8080/v1/account/sign-in
+POST http://localhost:8080/v1/accounts/sign-in
 Content-Type: application/json
 
 {
   "identifier": "admin",
   "password": "admin"
 }
+
+
+
+###
+GET http://localhost:8080
+User-Agent: CHOICORE
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJjaG9pY29yZS1hdXRoZW50aWNhdGlvbi1zZXJ2ZXIiLCJleHAiOjE2OTMyMTMwNjYsImlhdCI6MTY5MzIxMjQ2NiwianRpIjoiMDFhY2QwN2YtZTAzZS00YjQ2LWI5M2YtYjJhYjkyYjA0MjQ1In0.WyiIb1Rv7ZnW0oL1lf8vLlZHBfC41lA9xaG6fkm9JwDUp6qYQ-qHLr41b6RwUCR-GvrXKHGypDvKr22qAhUf4SDyCYSU83X18EbBfu2u_Okp5h1QxglcbY6fYWtNW_uA_qCHtCz0g0anA42rwYUXiAYumRrbH8KtC9Nf-QyxNiI8yam_G-WLKFiPPg3zsU_-LoJYGYB3rAr2f_VWdCOoHkCbEEHxWfaa85f6gZ1YYyJrp_olA4DIAbPwXPbd11TLJaxmyghfmqNlKXKX3DHz7E6sMzLhZFyZBud2th2G21Try4jK9GAIIzB6EI1hPMgbdCS8WxhwDdXHsdtxjbOJkg
+
+###
+GET http://localhost:8080/v1/users/me
+User-Agent: CHOICORE
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJjaG9pY29yZS1hdXRoZW50aWNhdGlvbi1zZXJ2ZXIiLCJleHAiOjE2OTMyMTMwNjYsImlhdCI6MTY5MzIxMjQ2NiwianRpIjoiMDFhY2QwN2YtZTAzZS00YjQ2LWI5M2YtYjJhYjkyYjA0MjQ1In0.WyiIb1Rv7ZnW0oL1lf8vLlZHBfC41lA9xaG6fkm9JwDUp6qYQ-qHLr41b6RwUCR-GvrXKHGypDvKr22qAhUf4SDyCYSU83X18EbBfu2u_Okp5h1QxglcbY6fYWtNW_uA_qCHtCz0g0anA42rwYUXiAYumRrbH8KtC9Nf-QyxNiI8yam_G-WLKFiPPg3zsU_-LoJYGYB3rAr2f_VWdCOoHkCbEEHxWfaa85f6gZ1YYyJrp_olA4DIAbPwXPbd11TLJaxmyghfmqNlKXKX3DHz7E6sMzLhZFyZBud2th2G21Try4jK9GAIIzB6EI1hPMgbdCS8WxhwDdXHsdtxjbOJkg
+
+###
+POST http://localhost:8080/v1/accounts/sign-out
