@@ -1,1 +1,1 @@
-rootProject.name = "spring-security"
+rootProject.name = "spring-boot-security-jwt-with-redis"
