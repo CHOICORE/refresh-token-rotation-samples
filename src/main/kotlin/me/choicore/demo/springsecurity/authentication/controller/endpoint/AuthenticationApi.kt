@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController
 
 
 @RestController
-@RequestMapping("/v1/account")
+@RequestMapping("/v1/accounts")
 class AuthenticationApi(
     private val authenticationProcessor: AuthenticationProcessor,
 ) {

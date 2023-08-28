@@ -2,10 +2,11 @@ package me.choicore.demo.springsecurity.authentication.repository.ephemeral
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import me.choicore.demo.springsecurity.authentication.common.Slf4j
 import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.AuthenticationCredentials
 import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.AuthenticationTokenCache
+import org.slf4j.Logger
 import org.springframework.context.event.EventListener
-import org.springframework.data.redis.core.RedisKeyExpiredEvent
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.ValueOperations
 import org.springframework.stereotype.Repository
@@ -16,6 +17,7 @@ import java.util.concurrent.TimeUnit
 class TokenRedisRepository(
     private val redisTemplate: RedisTemplate<String, String>,
 ) {
+    private val log: Logger = Slf4j
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
     private val valueOperations: ValueOperations<String, String>
         get() {
@@ -24,25 +26,33 @@ class TokenRedisRepository(
 
     @EventListener(condition = "#authenticationTokenCache != null")
     fun save(authenticationTokenCache: AuthenticationTokenCache) {
-        println("save: $authenticationTokenCache")
+        log.debug("save: {}", authenticationTokenCache)
+        val valueOperations: ValueOperations<String, String> = valueOperations
+
         val jsonString = objectMapper.writeValueAsString(authenticationTokenCache.value)
-        val valueOperations1 = valueOperations
-        valueOperations1[authenticationTokenCache.key] = jsonString
-        valueOperations1.apply {
-            getAndExpire(authenticationTokenCache.key, authenticationTokenCache.ttl, TimeUnit.SECONDS)
-        }
+
+        valueOperations[authenticationTokenCache.key] = jsonString
+
+        valueOperations
+            .apply {
+                getAndExpire(authenticationTokenCache.key, authenticationTokenCache.ttl, TimeUnit.SECONDS)
+            }
     }
 
-    @EventListener
-    fun handleRedisKeyExpiredEvent(event: RedisKeyExpiredEvent<*>) {
-        println("handleRedisKeyExpiredEvent: $event")
+    fun findById(id: String): AuthenticationCredentials? {
+        log.info("findById: $id")
+        return valueOperations[id]
+            .let {
+                objectMapper.readValue(it, AuthenticationCredentials::class.java)
+            }
     }
 
-    fun findById(id: String): AuthenticationCredentials {
-        println("findById: $id")
-        valueOperations[id]?.let {
-            return objectMapper.readValue(it, AuthenticationCredentials::class.java)
-        } ?: throw IllegalArgumentException("Not found token for id: $id")
+    fun deleteById(id: String) {
+        log.info("deleteById: $id")
+        redisTemplate.delete(id)
     }
 }
 
+//        valueOperations[id]?.let {
+//            return objectMapper.readValue(it, AuthenticationCredentials::class.java)
+//        } ?: throw IllegalStateException("Not found token for id: $id")

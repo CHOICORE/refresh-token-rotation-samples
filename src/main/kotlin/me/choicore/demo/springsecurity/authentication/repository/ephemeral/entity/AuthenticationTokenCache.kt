@@ -7,11 +7,15 @@ data class AuthenticationTokenCache(
 )
 
 data class AuthenticationCredentials(
-    val identifier: Long,
+    val principal: Principal,
     val credentials: Credentials,
 )
 
 data class Credentials(
     val accessToken: String,
     val refreshToken: String,
+)
+
+data class Principal(
+    val identifier: Long,
 )

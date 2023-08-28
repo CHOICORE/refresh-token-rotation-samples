@@ -2,7 +2,7 @@ package me.choicore.demo.springsecurity.authentication.repository.converter
 
 import jakarta.persistence.AttributeConverter
 import jakarta.persistence.Converter
-import me.choicore.demo.springsecurity.authentication.repository.persistence.UserEntity
+import me.choicore.demo.springsecurity.authentication.repository.persistence.entity.UserEntity
 
 @Converter(autoApply = true)
 class GenderAttributeConverter : AttributeConverter<UserEntity.Gender, Int> {

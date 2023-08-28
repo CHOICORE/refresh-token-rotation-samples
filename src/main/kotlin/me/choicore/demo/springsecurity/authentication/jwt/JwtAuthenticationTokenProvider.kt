@@ -1,9 +1,13 @@
 package me.choicore.demo.springsecurity.authentication.jwt
 
+import me.choicore.demo.springsecurity.authentication.common.Slf4j
 import me.choicore.demo.springsecurity.authentication.common.properties.JwtProperties
+import me.choicore.demo.springsecurity.authentication.repository.ephemeral.TokenRedisRepository
 import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.AuthenticationCredentials
 import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.AuthenticationTokenCache
 import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.Credentials
+import me.choicore.demo.springsecurity.authentication.repository.ephemeral.entity.Principal
+import org.slf4j.Logger
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtClaimsSet
 import org.springframework.security.oauth2.jwt.JwtDecoder
@@ -18,13 +22,17 @@ class JwtAuthenticationTokenProvider(
     private val jwtProperties: JwtProperties,
     private val jwtEncoder: JwtEncoder,
     private val jwtDecoder: JwtDecoder,
+    private val tokenRedisRepository: TokenRedisRepository,
 ) {
+    private val log: Logger = Slf4j
     private lateinit var jwt: Jwt
+
     fun validateToken(jwtToken: String): Boolean {
         return try {
             this.jwt = jwtDecoder.decode(jwtToken)
             true
         } catch (e: Exception) {
+            log.error("Invalid token: {}", jwtToken)
             false
         }
     }
@@ -57,15 +65,23 @@ class JwtAuthenticationTokenProvider(
             return AuthenticationTokenCache(
                 key = uuid,
                 value = AuthenticationCredentials(
-                    identifier = identifier,
+                    principal = Principal(
+                        identifier = identifier
+                    ),
                     credentials = Credentials(
                         accessToken = this.first,
                         refreshToken = this.second
                     )
                 ),
                 ttl = jwtProperties.refreshExpiredAt
-            )
+            ).apply {
+                tokenRedisRepository.save(this)
+            }
         }
+    }
+
+    fun reissueToken(refreshToken: String): AuthenticationToken {
+        TODO()
     }
 
     private fun issueRefreshToken(id: String): String {
