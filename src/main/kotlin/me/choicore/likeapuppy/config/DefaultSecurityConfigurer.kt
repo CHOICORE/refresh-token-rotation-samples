@@ -23,6 +23,7 @@ class DefaultSecurityConfigurer {
         private const val API_END_POINT_PREFIX = "/v1"
         private val PERMIT_WHITE_LIST = arrayOf(
             AntPathRequestMatcher("$API_END_POINT_PREFIX/accounts/sign-in"),
+            AntPathRequestMatcher("$API_END_POINT_PREFIX/auth/token"),
         )
     }
 

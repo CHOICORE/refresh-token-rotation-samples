@@ -18,7 +18,9 @@ class AccountApi(
 ) {
 
     @PostMapping("/sign-in")
-    fun signIn(@RequestBody @Valid signInRequestDto: SignInRequestDto): ResponseEntity<*> {
+    fun signIn(
+        @RequestBody @Valid signInRequestDto: SignInRequestDto,
+    ): ResponseEntity<*> {
         return ResponseEntity.ok(
             mapOf(
                 "code" to 0,
