@@ -19,7 +19,7 @@ import java.util.UUID
 
 
 @Configuration
-class JwtConfiguration(
+class JwtConfigurer(
     private val rsaKeyProperties: RsaKeyProperties,
 ) {
 

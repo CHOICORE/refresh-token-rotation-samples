@@ -46,7 +46,7 @@ class JwtAuthenticationTokenProvider(
         with(getAuthenticationTokenCache(identifier = identifier)) {
             return AuthenticationToken.bearerToken(
                 accessToken = value.credentials.accessToken,
-                expiresIn = jwtProperties.accessExpiresIn,
+                expiresIn = jwtProperties.accessExpirationTime,
                 refreshToken = value.credentials.refreshToken,
             )
         }
@@ -86,7 +86,7 @@ class JwtAuthenticationTokenProvider(
         }
         return AuthenticationToken.bearerToken(
             accessToken = authenticationTokenCache.value.credentials.accessToken,
-            expiresIn = jwtProperties.accessExpiresIn,
+            expiresIn = jwtProperties.accessExpirationTime,
             refreshToken = authenticationTokenCache.value.credentials.refreshToken,
         )
     }
@@ -125,7 +125,7 @@ class JwtAuthenticationTokenProvider(
                 identifier,
                 this.first,
                 this.second,
-                jwtProperties.refreshExpiresIn
+                jwtProperties.refreshExpirationTime
             ).apply {
                 tokenRedisRepository.save(this)
             }
@@ -152,7 +152,7 @@ class JwtAuthenticationTokenProvider(
                 refreshToken = refreshToken,
             ),
         ),
-        ttl = ttl ?: jwtProperties.refreshExpiresIn
+        ttl = ttl ?: jwtProperties.refreshExpirationTime
     )
 
     private fun issueTokens(
@@ -186,7 +186,7 @@ class JwtAuthenticationTokenProvider(
         val issuedAt: Instant = Instant.now()
         return generateToken(
             jti = jti,
-            expiresAt = issuedAt.plusSeconds(jwtProperties.refreshExpiresIn),
+            expiresAt = issuedAt.plusSeconds(jwtProperties.refreshExpirationTime),
             issuedAt = issuedAt
         )
     }
@@ -197,7 +197,7 @@ class JwtAuthenticationTokenProvider(
         val issuedAt: Instant = Instant.now()
         return generateToken(
             jti = jti,
-            expiresAt = issuedAt.plusSeconds(jwtProperties.accessExpiresIn),
+            expiresAt = issuedAt.plusSeconds(jwtProperties.accessExpirationTime),
             issuedAt = issuedAt,
         )
     }

@@ -4,9 +4,9 @@ rsa:
 
 jwt:
   # 2 hours
-  access-expires-in: 7200
+  access-expriation-time: 7200
   # 1 day
-  refresh-expires-in: 86400
+  refresh-expriation-time: 86400
   issuer: like-a-puppy-authentication-server
 
 authentication:
