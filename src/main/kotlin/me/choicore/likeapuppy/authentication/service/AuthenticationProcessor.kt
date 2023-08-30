@@ -5,8 +5,10 @@ import me.choicore.likeapuppy.authentication.common.properties.AuthenticationPro
 import me.choicore.likeapuppy.authentication.exception.UnauthorizedException
 import me.choicore.likeapuppy.authentication.jwt.AuthenticationToken
 import me.choicore.likeapuppy.authentication.jwt.JwtAuthenticationTokenProvider
+import me.choicore.likeapuppy.authentication.repository.ephemeral.entity.Identifier
 import me.choicore.likeapuppy.authentication.repository.persistence.UserJpaRepository
 import me.choicore.likeapuppy.authentication.repository.persistence.entity.UserEntity
+import org.slf4j.Logger
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
@@ -23,7 +25,7 @@ class AuthenticationProcessor(
     private val passwordEncoder: PasswordEncoder,
     private val jwtAuthenticationTokenProvider: JwtAuthenticationTokenProvider,
 ) {
-    private val log = Slf4j
+    private val log: Logger = Slf4j
 
     @Transactional(noRollbackFor = [UnauthorizedException::class])
     fun getAuthenticationToken(identifier: String, password: String): AuthenticationToken {
@@ -37,6 +39,7 @@ class AuthenticationProcessor(
             log.info("Successfully issued token for user with identifier $identifier.")
         }
     }
+
 
     @OptIn(ExperimentalContracts::class)
     private fun authenticate(userEntity: UserEntity?, enteredPassword: String) {
@@ -85,5 +88,16 @@ class AuthenticationProcessor(
 
     private fun issueTokenForValidatedUser(userEntity: UserEntity): AuthenticationToken {
         return jwtAuthenticationTokenProvider.generateAuthenticationToken(identifier = userEntity.id)
+    }
+
+    fun signOut(identifier: Identifier) {
+        jwtAuthenticationTokenProvider.revocationToken(key = identifier.public)
+        log.info("Successfully signed out user with identifier $identifier.")
+    }
+
+    fun refreshTokenRotation(refreshToken: String): AuthenticationToken {
+        jwtAuthenticationTokenProvider.refreshTokenRotation(refreshToken = refreshToken)
+
+        TODO()
     }
 }

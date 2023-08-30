@@ -3,6 +3,7 @@ package me.choicore.likeapuppy.authentication.repository.ephemeral
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import me.choicore.likeapuppy.authentication.common.Slf4j
+import me.choicore.likeapuppy.authentication.exception.UnauthorizedException
 import me.choicore.likeapuppy.authentication.repository.ephemeral.entity.AuthenticationCredentials
 import me.choicore.likeapuppy.authentication.repository.ephemeral.entity.AuthenticationTokenCache
 import org.slf4j.Logger
@@ -24,7 +25,7 @@ class TokenRedisRepository(
         }
 
     fun save(authenticationTokenCache: AuthenticationTokenCache) {
-        log.debug("save: {}", authenticationTokenCache)
+        log.debug("Save: {}", authenticationTokenCache)
         val valueOperations: ValueOperations<String, String> = valueOperations
 
         val jsonString = objectMapper.writeValueAsString(authenticationTokenCache.value)
@@ -37,17 +38,29 @@ class TokenRedisRepository(
             }
     }
 
-    fun findById(id: String): AuthenticationCredentials? {
-        log.info("findById: $id")
-        return valueOperations[id]
-            .let {
-                objectMapper.readValue(it, AuthenticationCredentials::class.java)
-            }
+    /**
+     * If no credentials found in cache for the JWT id, it means the token is expired.
+     */
+    @Throws(UnauthorizedException.InvalidToken::class)
+    fun findById(id: String): AuthenticationCredentials {
+        log.info("Find by id: $id")
+        valueOperations[id]?.let {
+            return objectMapper.readValue(it, AuthenticationCredentials::class.java)
+        } ?: throw UnauthorizedException.InvalidToken
     }
 
     fun deleteById(id: String) {
-        log.info("deleteById: $id")
-        redisTemplate.delete(id)
+        log.info("Delete by id: $id")
+        val isDeleted: Boolean = redisTemplate.delete(id)
+
+        check(isDeleted) {
+            "Failed to delete token with id: $id"
+        }
+    }
+
+    fun deleteAll() {
+        log.info("Delete all")
+        redisTemplate.delete(redisTemplate.keys("*"))
     }
 }
 

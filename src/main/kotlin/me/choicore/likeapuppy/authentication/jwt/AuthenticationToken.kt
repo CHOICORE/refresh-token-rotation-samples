@@ -16,17 +16,10 @@ data class AuthenticationToken(
         fun bearerToken(accessToken: String, expiresIn: Long, refreshToken: String): AuthenticationToken {
             return AuthenticationToken(
                 accessToken = accessToken,
-                tokenType = GrantType.BEARER.value,
+                tokenType = "Bearer",
                 expiresIn = expiresIn,
                 refreshToken = refreshToken,
             )
         }
     }
 }
-
-enum class GrantType(val value: String) {
-    BEARER("Bearer");
-}
-
-
-

@@ -10,6 +10,11 @@ class HomeApi {
 
     @GetMapping
     fun home(): ResponseEntity<*> {
-        return ResponseEntity.ok(mapOf("code" to 0, "message" to "Hello, World!"))
+        return ResponseEntity.ok(
+            mapOf(
+                "code" to 0,
+                "message" to "Hello, World!"
+            )
+        )
     }
 }

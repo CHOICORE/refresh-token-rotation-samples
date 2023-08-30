@@ -4,8 +4,7 @@ import me.choicore.likeapuppy.authentication.common.Slf4j
 import me.choicore.likeapuppy.authentication.exception.UnauthorizedException
 import me.choicore.likeapuppy.authentication.repository.ephemeral.TokenRedisRepository
 import me.choicore.likeapuppy.authentication.repository.ephemeral.entity.AuthenticationCredentials
-import me.choicore.likeapuppy.authentication.repository.ephemeral.entity.Credentials
-import me.choicore.likeapuppy.authentication.repository.ephemeral.entity.Principal
+import me.choicore.likeapuppy.authentication.repository.ephemeral.entity.Identifier
 import org.springframework.core.convert.converter.Converter
 import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -29,9 +28,10 @@ class JwtAuthenticationConverter(
 
         val authorities: Collection<GrantedAuthority>? = jwtGrantedAuthoritiesConverter.convert(jwt)
 
-        val principal: Principal = getCachedUserPrincipal(jwt)
+        val identifier: Identifier = getCachedUserIdentifier(jwt)
 
-        return UsernamePasswordAuthenticationToken(principal, null, authorities)
+        // JwtAuthenticationToken
+        return UsernamePasswordAuthenticationToken(identifier, null, authorities)
     }
 
     fun setJwtGrantedAuthoritiesConverter(
@@ -47,37 +47,29 @@ class JwtAuthenticationConverter(
     }
 
     @Throws(UnauthorizedException::class)
-    private fun getCachedUserPrincipal(jwt: Jwt): Principal {
+    private fun getCachedUserIdentifier(jwt: Jwt): Identifier {
         log.info("Validating token with id: ${jwt.id}")
 
-        val authenticationCredentials: AuthenticationCredentials = getAuthenticationCredentials(jwt.id)
+        val authenticationCredentials: AuthenticationCredentials = tokenRedisRepository.findById(jwt.id)
 
-        validateTokenWithCredentials(jwt, authenticationCredentials.credentials)
+        jwt.validateByCachedToken(authenticationCredentials.credentials.accessToken)
 
-        return authenticationCredentials.principal
+        return authenticationCredentials.principal.identifier
     }
 
-    // If no credentials found in cache for the JWT id, it means the token is expired.
-    private fun getAuthenticationCredentials(id: String): AuthenticationCredentials {
-        return tokenRedisRepository.findById(id) ?: throw UnauthorizedException.ExpiredToken
-    }
-
-
-    // If neither access nor refresh tokens match the JWT's value,
-    // it means the provided JWT is invalid.
+    /**
+     * Validate the JWT by comparing the access token in the cache.
+     * it means the provided JWT is invalid.
+     */
     @Throws(UnauthorizedException::class)
-    private fun validateTokenWithCredentials(jwt: Jwt, credentials: Credentials) {
-        if (jwt.compareTokenValue(credentials.accessToken)) {
+    private fun Jwt.validateByCachedToken(tokenValue: String) {
+        if (this.tokenValue == tokenValue) {
             log.debug("Compare requested to cached access token matched")
             return
         }
 
         log.error("Compare requested token to cached authentication token not matched")
-        tokenRedisRepository.deleteById(jwt.id)
+        tokenRedisRepository.deleteById(this.id)
         throw UnauthorizedException.InvalidToken
-    }
-
-    private fun Jwt.compareTokenValue(tokenValue: String): Boolean {
-        return this.tokenValue == tokenValue
     }
 }

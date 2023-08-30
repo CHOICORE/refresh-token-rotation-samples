@@ -6,13 +6,19 @@ import me.choicore.likeapuppy.authentication.repository.ephemeral.TokenRedisRepo
 import me.choicore.likeapuppy.authentication.repository.ephemeral.entity.AuthenticationCredentials
 import me.choicore.likeapuppy.authentication.repository.ephemeral.entity.AuthenticationTokenCache
 import me.choicore.likeapuppy.authentication.repository.ephemeral.entity.Credentials
+import me.choicore.likeapuppy.authentication.repository.ephemeral.entity.Identifier
 import me.choicore.likeapuppy.authentication.repository.ephemeral.entity.Principal
 import org.slf4j.Logger
+import org.springframework.security.authentication.AuthenticationServiceException
+import org.springframework.security.core.AuthenticationException
+import org.springframework.security.oauth2.jwt.BadJwtException
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtClaimsSet
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.JwtEncoder
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters
+import org.springframework.security.oauth2.jwt.JwtException
+import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException
 import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.UUID
@@ -25,84 +31,131 @@ class JwtAuthenticationTokenProvider(
     private val tokenRedisRepository: TokenRedisRepository,
 ) {
     private val log: Logger = Slf4j
-    private lateinit var jwt: Jwt
 
-    fun validateToken(jwtToken: String): Boolean {
-        return try {
-            this.jwt = jwtDecoder.decode(jwtToken)
-            true
-        } catch (e: Exception) {
-            log.error("Invalid token: {}", jwtToken)
-            false
-        }
+    fun revocationToken(
+        key: String,
+    ) {
+        tokenRedisRepository.deleteById(key)
     }
 
-    fun getIdentifier(): String {
-        return jwt.id
-    }
-
-    fun issueTokens(id: String): Pair<String, String> {
-        val accessToken = this.issueAccessToken(id)
-        val refreshToken = this.issueRefreshToken(id)
-        return Pair(accessToken, refreshToken)
-    }
-
-    fun generateAuthenticationToken(identifier: Long): AuthenticationToken {
+    fun generateAuthenticationToken(
+        identifier: Long,
+    ): AuthenticationToken {
         with(getAuthenticationTokenCache(identifier = identifier)) {
             return AuthenticationToken.bearerToken(
                 accessToken = value.credentials.accessToken,
-                expiresIn = jwtProperties.accessExpiredAt,
+                expiresIn = jwtProperties.accessExpiresIn,
                 refreshToken = value.credentials.refreshToken,
             )
         }
     }
 
-    private fun getAuthenticationTokenCache(identifier: Long): AuthenticationTokenCache {
-        val uuid = UUID.randomUUID().toString()
-        val issueTokens: Pair<String, String> = this.issueTokens(id = uuid)
+    fun refreshTokenRotation(
+        refreshToken: String,
+    ): AuthenticationToken {
+        val jwt: Jwt = validateTokenValue(tokenValue = refreshToken)
+        val authenticationCredentials: AuthenticationCredentials = tokenRedisRepository.findById(jwt.id)
+        val expiresAt: Instant = jwt.expiresAt ?: throw IllegalStateException("Refresh token must have an expiration date")
+        val now: Instant = Instant.now()
+
+
+        TODO()
+    }
+
+    fun generateToken(
+        jti: String,
+        issuer: String? = jwtProperties.issuer,
+        subject: String? = null,
+        expiresAt: Instant,
+        issuedAt: Instant,
+        claims: Map<String, Any>? = emptyMap(),
+    ): String {
+        val jwtClaimsSet: JwtClaimsSet = JwtClaimsSet.builder()
+            .id(jti)
+            .expiresAt(issuedAt.plusSeconds(expiresAt.epochSecond))
+            .issuedAt(issuedAt)
+            .issuer(issuer)
+            .claims {
+                if (claims != null) {
+                    it.putAll(claims)
+                }
+            }
+            .build()
+        return jwtEncoder.encode(JwtEncoderParameters.from(jwtClaimsSet)).tokenValue
+    }
+
+    private fun getAuthenticationTokenCache(
+        identifier: Long,
+    ): AuthenticationTokenCache {
+        val uuid: String = UUID.randomUUID().toString()
+        val issueTokens: Pair<String, String> = this.issueTokens(jti = uuid)
 
         with(issueTokens) {
             return AuthenticationTokenCache(
                 key = uuid,
                 value = AuthenticationCredentials(
                     principal = Principal(
-                        identifier = identifier
+                        identifier = Identifier(
+                            public = uuid,
+                            private = identifier,
+                        ),
                     ),
                     credentials = Credentials(
                         accessToken = this.first,
-                        refreshToken = this.second
-                    )
+                        refreshToken = this.second,
+                    ),
                 ),
-                ttl = jwtProperties.refreshExpiredAt
+                ttl = jwtProperties.refreshExpiresIn,
             ).apply {
                 tokenRedisRepository.save(this)
             }
         }
     }
 
-    fun reissueToken(refreshToken: String): AuthenticationToken {
-        TODO()
+    private fun issueTokens(
+        jti: String,
+    ): Pair<String, String> {
+        val accessToken: String = issueAccessToken(jti)
+        val refreshToken: String = issueRefreshToken(jti)
+        return Pair(
+            accessToken,
+            refreshToken,
+        )
     }
 
-    private fun issueRefreshToken(id: String): String {
-        return this.generateToken(id = id, expiresAt = jwtProperties.refreshExpiredAt)
+    @Throws(AuthenticationException::class)
+    fun validateTokenValue(
+        tokenValue: String,
+    ): Jwt {
+        return try {
+            jwtDecoder.decode(tokenValue)
+        } catch (failed: BadJwtException) {
+            log.debug("Failed to authenticate since the JWT was invalid")
+            throw InvalidBearerTokenException(failed.message, failed)
+        } catch (failed: JwtException) {
+            throw AuthenticationServiceException(failed.message, failed)
+        }
     }
 
-    private fun issueAccessToken(id: String): String {
-        return this.generateToken(id = id, expiresAt = jwtProperties.accessExpiredAt)
+    private fun issueRefreshToken(
+        id: String,
+    ): String {
+        val issuedAt: Instant = Instant.now()
+        return generateToken(
+            jti = id,
+            expiresAt = issuedAt.plusSeconds(jwtProperties.refreshExpiresIn),
+            issuedAt = issuedAt
+        )
     }
 
-    fun generateToken(id: String, expiresAt: Long): String {
-        return generateToken(id = id, expiresAt = expiresAt, issuedAt = Instant.now())
-    }
-
-    fun generateToken(id: String, expiresAt: Long, issuedAt: Instant): String {
-        val jwtClaimsSet = JwtClaimsSet.builder()
-            .id(id)
-            .expiresAt(issuedAt.plusSeconds(expiresAt))
-            .issuedAt(issuedAt)
-            .issuer(jwtProperties.issuer)
-            .build()
-        return this.jwtEncoder.encode(JwtEncoderParameters.from(jwtClaimsSet)).tokenValue
+    private fun issueAccessToken(
+        id: String,
+    ): String {
+        val issuedAt: Instant = Instant.now()
+        return generateToken(
+            jti = id,
+            expiresAt = issuedAt.plusSeconds(jwtProperties.accessExpiresIn),
+            issuedAt = issuedAt,
+        )
     }
 }

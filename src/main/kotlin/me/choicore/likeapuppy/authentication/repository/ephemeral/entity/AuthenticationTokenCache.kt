@@ -17,5 +17,10 @@ data class Credentials(
 )
 
 data class Principal(
-    val identifier: Long,
+    val identifier: Identifier,
+)
+
+data class Identifier(
+    val public: String,
+    val private: Long,
 )

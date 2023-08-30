@@ -1,6 +1,6 @@
 package me.choicore.likeapuppy.authentication.controller.endpoint
 
-import me.choicore.likeapuppy.authentication.repository.ephemeral.entity.Principal
+import me.choicore.likeapuppy.authentication.repository.ephemeral.entity.Identifier
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -10,11 +10,19 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/v1/users")
-class UserResourceApi {
+class UserApi {
+
     @GetMapping("/me")
     fun getMe(
-        @AuthenticationPrincipal principal: Principal
+        @AuthenticationPrincipal identifier: Identifier,
     ): ResponseEntity<*> {
-        return ResponseEntity.ok(mapOf("code" to "000", "message" to "SUCCEED", "data" to mapOf("userId" to principal.identifier)))
+
+        return ResponseEntity.ok(
+            mapOf(
+                "code" to "000",
+                "message" to "SUCCEED",
+                "data" to mapOf("identifier" to identifier)
+            )
+        )
     }
 }
