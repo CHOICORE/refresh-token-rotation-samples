@@ -6,8 +6,8 @@ import org.springframework.boot.runApplication
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
-class SpringSecurityApplication
+class LikeAPuppyApplication
 
 fun main(args: Array<String>) {
-    runApplication<SpringSecurityApplication>(*args)
+    runApplication<LikeAPuppyApplication>(*args)
 }
