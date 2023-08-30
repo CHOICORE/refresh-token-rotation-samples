@@ -14,6 +14,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.TestConstructor
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
 import java.time.Instant
 import java.util.UUID
 
@@ -55,6 +56,38 @@ class AuthenticationApiTest(
                     {
                       "code": 0,
                       "message": "Hello, World!"
+                    }
+                """.trimIndent()
+                    )
+                }
+            }
+        }
+
+        @Test
+        @DisplayName("리프레시 토큰을 통해 엑세스 토큰과, 리프레시 토큰을 재발급한다. [200 - OK]")
+        fun shouldReissueTokensUsingRefreshToken() {
+
+            // given
+            val authenticationToken: AuthenticationToken = jwtAuthenticationTokenProvider.generateAuthenticationToken(1L)
+
+            // expect
+            mockMvc.post("/v1/auth/token") {
+                contentType = MediaType.APPLICATION_JSON
+                content = """
+                    {
+                        "refresh_token": "${authenticationToken.refreshToken}"
+                    }
+                """.trimIndent()
+            }.andExpect {
+                status { isOk() }
+                content {
+                    contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE)
+                    encoding(Charsets.UTF_8.displayName())
+                    json(
+                        """
+                    {
+                      "code": 0,
+                      "message": "SUCCEED"
                     }
                 """.trimIndent()
                     )
