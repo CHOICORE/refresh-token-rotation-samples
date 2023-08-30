@@ -12,7 +12,7 @@ import javax.sql.DataSource
 @SpringBootTest
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class DataSourceTest(
-    var dataSource: DataSource
+    var dataSource: DataSource,
 ) {
 
     @Test

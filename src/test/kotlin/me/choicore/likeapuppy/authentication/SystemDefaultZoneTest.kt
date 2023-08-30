@@ -10,10 +10,9 @@ class SystemDefaultZoneTest {
 
     @Test
     @DisplayName("시스템 기본 시간대가 서울 시간대인지 확인")
-    fun systemDefaultZoneShouldBeEqualToSeoulZone() {
+    fun testSystemDefaultZoneShouldBeEqualToSeoulZone() {
         val systemDefaultZone: ZoneId = ZoneId.systemDefault()
         val seoulZone = ZoneId.of("Asia/Seoul")
         assertThat(systemDefaultZone).isEqualTo(seoulZone)
     }
-
 }
