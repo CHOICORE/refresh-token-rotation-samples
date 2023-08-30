@@ -28,7 +28,10 @@ class AuthenticationProcessor(
     private val log: Logger = Slf4j
 
     @Transactional(noRollbackFor = [UnauthorizedException::class])
-    fun getAuthenticationToken(identifier: String, password: String): AuthenticationToken {
+    fun getAuthenticationToken(
+        identifier: String,
+        password: String,
+    ): AuthenticationToken {
         log.info("Starting authentication for user with identifier $identifier.")
 
         val userEntity: UserEntity? = userJpaRepository.findByIdentifier(identifier = identifier)
@@ -40,9 +43,11 @@ class AuthenticationProcessor(
         }
     }
 
-
     @OptIn(ExperimentalContracts::class)
-    private fun authenticate(userEntity: UserEntity?, enteredPassword: String) {
+    private fun authenticate(
+        userEntity: UserEntity?,
+        enteredPassword: String,
+    ) {
         // Contract ensures that userEntity is not null when the function returns
         contract { returns() implies (userEntity != null) }
 
@@ -57,7 +62,9 @@ class AuthenticationProcessor(
     }
 
     @Throws(UnauthorizedException::class)
-    private fun UserEntity.validateAuthentication(enteredPassword: String) {
+    private fun UserEntity.validateAuthentication(
+        enteredPassword: String,
+    ) {
 
         if (failedLoginAttempts >= authenticationProperties.loginAttemptsLimit) {
             log.error("User with ID $id has exceeded the maximum number of login attempts.")
@@ -86,18 +93,22 @@ class AuthenticationProcessor(
         lastLoggedInAt = Instant.now()
     }
 
-    private fun issueTokenForValidatedUser(userEntity: UserEntity): AuthenticationToken {
+    private fun issueTokenForValidatedUser(
+        userEntity: UserEntity,
+    ): AuthenticationToken {
         return jwtAuthenticationTokenProvider.generateAuthenticationToken(identifier = userEntity.id)
     }
 
-    fun signOut(identifier: Identifier) {
+    fun signOut(
+        identifier: Identifier,
+    ) {
         jwtAuthenticationTokenProvider.revocationToken(key = identifier.public)
         log.info("Successfully signed out user with identifier $identifier.")
     }
 
-    fun refreshTokenRotation(refreshToken: String): AuthenticationToken {
-        jwtAuthenticationTokenProvider.refreshTokenRotation(refreshToken = refreshToken)
-
-        TODO()
+    fun refreshTokenRotation(
+        issuedRefreshToken: String,
+    ): AuthenticationToken {
+        return jwtAuthenticationTokenProvider.refreshTokenRotation(refreshToken = issuedRefreshToken)
     }
 }

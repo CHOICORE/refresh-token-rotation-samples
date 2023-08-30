@@ -3,7 +3,9 @@ rsa:
   private-key: classpath:/keys/private-key.pem
 
 jwt:
-  access-expires-in: 600
+  # 2 hours
+  access-expires-in: 7200
+  # 1 day
   refresh-expires-in: 86400
   issuer: like-a-puppy-authentication-server
 
