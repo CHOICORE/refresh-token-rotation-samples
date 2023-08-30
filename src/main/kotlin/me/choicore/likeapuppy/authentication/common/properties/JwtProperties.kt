@@ -6,8 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties(prefix = "jwt")
 data class JwtProperties(
     val issuer: String,
-    val accessExpiredAt: Long,
-    val refreshExpiredAt: Long,
+    val accessExpiresIn: Long,
+    val refreshExpiresIn: Long,
     // val expiration: Expiration,
 ) {
 //    data class Expiration(
@@ -15,4 +15,5 @@ data class JwtProperties(
 //        val refreshToken: Long,
 //    )
 }
+
 
