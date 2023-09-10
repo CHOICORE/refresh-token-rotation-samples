@@ -17,7 +17,7 @@ class ObjectMapperTest {
     private val defaultEmbeddedObjectMapper = ObjectMapper()
 
     @Nested
-    @DisplayName("Jackson ObjectMapper로 [java.time.*] 테스트한다.")
+    @DisplayName("Jackson ObjectMapper로 [java.time.*] 를 직렬화 한다.")
     inner class JavaTimeSerializeTests {
         @Test
         @DisplayName("[java.time.*] 객체를 JavaTimeModule 모듈을 등록한 ObjectMapper 로 직렬화 한다.")

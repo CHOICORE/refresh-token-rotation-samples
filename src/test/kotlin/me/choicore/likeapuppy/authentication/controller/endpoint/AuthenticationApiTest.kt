@@ -108,8 +108,8 @@ class AuthenticationApiTest(
             val issuedAt: Instant = Instant.now()
             val jwt: String = jwtAuthenticationTokenProvider.generateToken(
                 jti = UUID.randomUUID().toString(),
-                issuedAt = issuedAt.plusSeconds(10),
-                expiresAt = issuedAt
+                expiresAt = issuedAt.plusSeconds(10),
+                issuedAt = issuedAt
             )
 
             // expect
