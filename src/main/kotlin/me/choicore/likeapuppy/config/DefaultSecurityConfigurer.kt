@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import me.choicore.likeapuppy.authentication.exception.AuthenticationEntryPoint
 import me.choicore.likeapuppy.authentication.jwt.JwtAuthenticationConverter
+import me.choicore.likeapuppy.authentication.repository.ephemeral.TokenRedisRepository
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -24,6 +25,7 @@ class DefaultSecurityConfigurer {
         private val PERMIT_WHITE_LIST = arrayOf(
             AntPathRequestMatcher("$API_END_POINT_PREFIX/accounts/sign-in"),
             AntPathRequestMatcher("$API_END_POINT_PREFIX/auth/token"),
+            AntPathRequestMatcher("$API_END_POINT_PREFIX/oauth2/authorize*"),
         )
     }
 
@@ -61,5 +63,12 @@ class DefaultSecurityConfigurer {
             }
 
         return httpSecurity.build()
+    }
+
+    @Bean
+    fun jwtAuthenticationConverter(
+        tokenRedisRepository: TokenRedisRepository,
+    ): JwtAuthenticationConverter {
+        return JwtAuthenticationConverter(tokenRedisRepository = (tokenRedisRepository))
     }
 }

@@ -110,7 +110,12 @@ class JwtAuthenticationTokenProvider(
                 }
             }
             .build()
-        return jwtEncoder.encode(JwtEncoderParameters.from(jwtClaimsSet)).tokenValue
+
+        try {
+            return jwtEncoder.encode(JwtEncoderParameters.from(jwtClaimsSet)).tokenValue
+        } catch (e: IllegalArgumentException) {
+            throw InvalidBearerTokenException(e.message, e)
+        }
     }
 
     private fun getAuthenticationTokenCache(

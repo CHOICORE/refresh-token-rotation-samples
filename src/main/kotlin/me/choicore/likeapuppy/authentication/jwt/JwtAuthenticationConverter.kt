@@ -12,10 +12,8 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtClaimNames
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
-import org.springframework.stereotype.Component
 import org.springframework.util.Assert
 
-@Component
 class JwtAuthenticationConverter(
     private val tokenRedisRepository: TokenRedisRepository,
 ) : Converter<Jwt, AbstractAuthenticationToken> {
