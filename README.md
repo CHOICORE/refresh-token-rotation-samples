@@ -1,4 +1,4 @@
-# Like A Puppy (feat. 🐶같이) - Authorization Server
+# Like a Puppy (feat. 🐶같이) - Authorization Server
 
 ## Stateless Authorization Server With Bearer JSON Web Tokens.
 
